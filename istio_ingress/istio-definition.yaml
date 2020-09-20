@@ -1,0 +1,45 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: icap-server-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 31400
+      name: tcp
+      protocol: TCP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: icap-server-destination
+spec:
+  host: icap-server-icap-service
+  subsets:
+  - name: v1
+    labels:
+      app.kubernetes.io/name: icap-service
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: icap-server-icap-service
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - icap-server-gateway
+  tcp:
+  - match:
+    - port: 31400
+    route:
+    - destination:
+        host: icap-server-icap-service
+        port:
+          number: 1344
+        subset: v1
